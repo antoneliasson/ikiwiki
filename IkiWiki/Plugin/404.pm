@@ -74,7 +74,9 @@ sub cgi ($) {
 		my $page = cgi_page_from_404(
 			Encode::decode_utf8($ENV{REDIRECT_URL}),
 			$config{url}, $config{usedirs});
-		IkiWiki::Plugin::goto::cgi_goto($cgi, $page);
+
+		$ENV{QUERY_STRING}="P=$page";
+		IkiWiki::Plugin::search::search($cgi);
 	}
 }
 

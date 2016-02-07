@@ -183,24 +183,31 @@ sub delete (@) {
 	}
 }
 
+sub search($) {
+	my $cgi=shift;
+
+	if ($config{google_search}) {
+		print $cgi->redirect("https://www.google.com/search?sitesearch=$config{url}&q=".$cgi->param('P'));
+		exit 0;
+	}
+	else {
+		# only works for GET requests
+		chdir("$config{wikistatedir}/xapian") || error("chdir: $!");
+		$ENV{OMEGA_CONFIG_FILE}="./omega.conf";
+		$ENV{CGIURL}=IkiWiki::cgiurl();
+		IkiWiki::loadindex();
+		$ENV{HELPLINK}=htmllink("", "", "ikiwiki/searching",
+					noimageinline => 1, linktext => "Help");
+
+		exec($config{omega_cgi}) || error("$config{omega_cgi} failed: $!");
+	}
+}
+
 sub cgi ($) {
 	my $cgi=shift;
 
 	if (defined $cgi->param('P')) {
-		if ($config{google_search}) {
-			print $cgi->redirect("https://www.google.com/search?sitesearch=$config{url}&q=".$cgi->param('P'));
-			exit 0;
-		}
-		else {
-			# only works for GET requests
-			chdir("$config{wikistatedir}/xapian") || error("chdir: $!");
-			$ENV{OMEGA_CONFIG_FILE}="./omega.conf";
-			$ENV{CGIURL}=IkiWiki::cgiurl();
-			IkiWiki::loadindex();
-			$ENV{HELPLINK}=htmllink("", "", "ikiwiki/searching",
-				noimageinline => 1, linktext => "Help");
-			exec($config{omega_cgi}) || error("$config{omega_cgi} failed: $!");
-		}
+		search($cgi);
 	}
 }
 
